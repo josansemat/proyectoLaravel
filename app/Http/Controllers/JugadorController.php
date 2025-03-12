@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Jugador; // Importar el modelo Jugador
+use App\Models\Equipo; // Importar el modelo Equipo para los formularios
 use Illuminate\Http\Request;
 
 class JugadorController extends Controller
@@ -21,7 +22,8 @@ class JugadorController extends Controller
      */
     public function create()
     {
-        //
+        $equipos = Equipo::all();
+        return view('jugadores.create', compact('equipos'));
     }
 
     /**
@@ -36,7 +38,7 @@ class JugadorController extends Controller
             'equipo_id' => 'required|exists:equipos,id'
         ]);
         Jugador::create($request->all());
-        return redirect()->route('jugadores.index');
+        return redirect()->route('jugadores.index')->with('success', 'Jugador creado correctamente');
     }
 
     /**
@@ -44,7 +46,8 @@ class JugadorController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $jugador = Jugador::with('equipo')->findOrFail($id);
+        return view('jugadores.show', compact('jugador'));
     }
 
     /**
@@ -52,7 +55,9 @@ class JugadorController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $jugador = Jugador::findOrFail($id);
+        $equipos = Equipo::all();
+        return view('jugadores.edit', compact('jugador', 'equipos'));
     }
 
     /**
@@ -60,7 +65,17 @@ class JugadorController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $jugador = Jugador::findOrFail($id);
+        
+        $request->validate([
+            'nombre' => 'required|max:100',
+            'edad' => 'required|integer|min:16',
+            'posicion' => 'required',
+            'equipo_id' => 'required|exists:equipos,id'
+        ]);
+        
+        $jugador->update($request->all());
+        return redirect()->route('jugadores.index')->with('success', 'Jugador actualizado correctamente');
     }
 
     /**
@@ -68,6 +83,8 @@ class JugadorController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $jugador = Jugador::findOrFail($id);
+        $jugador->delete();
+        return redirect()->route('jugadores.index')->with('success', 'Jugador eliminado correctamente');
     }
 }
